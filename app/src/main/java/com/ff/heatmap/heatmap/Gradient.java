@@ -7,7 +7,7 @@ import java.util.HashMap;
 /**
  * A class to generate a color map of given size from a given array of colors and the fractions
  */
-public class Gradient {
+public class  Gradient {
 
     private static final int DEFAULT_COLOR_MAP_SIZE = 1000;
     public final int colorMapSize;

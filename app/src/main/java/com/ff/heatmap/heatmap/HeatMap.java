@@ -10,17 +10,30 @@ import java.util.Collection;
  */
 public class HeatMap {
 
-    private static final double DEFAULT_OPACITY = 0.6;
+    private static final float DEFAULT_OPACITY = 0.7f;
 
     private static final int DEFAULT_RADIUS = 36;
 
     private static final Gradient DEFAULT_GRADIENT = new Gradient(
-            new int[]{Color.TRANSPARENT, Color.BLUE, Color.GREEN, Color.YELLOW, Color.RED},
-            new float[]{0f, 0.25f, 0.55f, 0.85f, 1f});
+            new int[]{
+                    Color.WHITE,
+                    Color.rgb(255,255,238),//light-yellow
+                    Color.YELLOW,
+                    Color.RED,
+                    Color.rgb(204,0,0)
+            },
+
+            new float[]{
+                    0f,//white
+                   0.62f,//light-yellow
+                    0.75f,//yellow
+                    0.98f,//red
+                    1f// dark red
+            });
 
     private static final int MIN_RADIUS = 10;
 
-    private static final int MAX_RADIUS = 50;
+    private static final int MAX_RADIUS = 100;
 
     private Collection<WeightedLatLng> mData;
 
@@ -30,11 +43,11 @@ public class HeatMap {
 
     private int[] mColorMap;
 
-    private double[] mKernel;
+    private float[] mKernel;
 
-    private double mOpacity;
+    private float mOpacity;
 
-    private double mMaxIntensity;
+    private float mMaxIntensity;
 
     private int mWidth;
 
@@ -50,22 +63,22 @@ public class HeatMap {
         mWidth = builder.width;
         mHeight = builder.height;
 
-        mKernel = generateKernel(mRadius, mRadius / 3.0);
+        mKernel = generateKernel(mRadius, mRadius / 3.0f);
 
         setGradient(mGradient);
 
         setWeightedData(mData);
     }
 
-    static double[] generateKernel(int radius, double sd) {
-        double[] kernel = new double[radius * 2 + 1];
+    static float[] generateKernel(int radius, float sd) {
+        float[] kernel = new float[radius * 2 + 1];
         for (int i = -radius; i <= radius; i++) {
-            kernel[i + radius] = (Math.exp(-i * i / (2 * sd * sd)));
+            kernel[i + radius] =(float) (Math.exp((-i * i / (2 * sd * sd))));
         }
         return kernel;
     }
 
-    static double[][] convolve(double[][] grid, double[] kernel) {
+    static float[][] convolve(float[][] grid, float[] kernel) {
         int radius = (int) Math.floor((double) kernel.length / 2.0);
 
         int dimOldW = grid.length;
@@ -96,7 +109,7 @@ public class HeatMap {
             }
         }
 
-        double[][] outputGrid = new double[dimW][dimH];
+        float[][] outputGrid = new float[dimW][dimH];
 
         int y2, yUpperLimit;
 
@@ -116,7 +129,7 @@ public class HeatMap {
         return outputGrid;
     }
 
-    static Bitmap colorize(double[][] grid, int[] colorMap, double max) {
+    static Bitmap colorize(float[][] grid, int[] colorMap, float max) {
         int maxColor = colorMap[colorMap.length - 1];
         double colorMapScaling = (colorMap.length - 1) / max;
 
@@ -124,7 +137,7 @@ public class HeatMap {
         int dimH = grid[0].length;
 
         int i, j, index, col;
-        double val;
+        float val;
         int colors[] = new int[dimW * dimH];
         for (i = 0; i < dimH; i++) {
             for (j = 0; j < dimW; j++) {
@@ -151,11 +164,13 @@ public class HeatMap {
             throw new IllegalArgumentException("No input points.");
         }
         mData = data;
-        mMaxIntensity = getMaxIntensities();
+        //mMaxIntensity = getMaxIntensities();
+        mMaxIntensity = 40;//测体温场景，
+
     }
 
     public Bitmap generateMap() {
-        double[][] intensity = new double[mWidth + mRadius * 2][mHeight + mRadius * 2];
+        float[][] intensity = new float[mWidth][mHeight];
         for (WeightedLatLng w : mData) {
             //if you are using LatLng,transform them into screen coordinates
             int bucketX = w.x;
@@ -165,7 +180,7 @@ public class HeatMap {
                 intensity[bucketX][bucketY] += w.intensity;
         }
 
-        double[][] convolved = convolve(intensity, mKernel);
+        float[][] convolved = convolve(intensity, mKernel);
 
         return colorize(convolved, mColorMap, mMaxIntensity);
     }
@@ -177,20 +192,20 @@ public class HeatMap {
 
     public void setRadius(int radius) {
         mRadius = radius;
-        mKernel = generateKernel(mRadius, mRadius / 3.0);
+        mKernel = generateKernel(mRadius, mRadius / 3.0f);
         mMaxIntensity = getMaxIntensities();
     }
 
-    public void setOpacity(double opacity) {
+    public void setOpacity(float opacity) {
         mOpacity = opacity;
         setGradient(mGradient);
     }
 
-    private double getMaxIntensities() {
-        double maxIntensity = 0;
+    private float getMaxIntensities() {
+        float maxIntensity = 0;
 
         for (WeightedLatLng l : mData) {
-            double value = l.intensity;
+            float value = l.intensity;
             if (value > maxIntensity) maxIntensity = value;
         }
         return maxIntensity;
@@ -201,7 +216,7 @@ public class HeatMap {
 
         private int radius = DEFAULT_RADIUS;
         private Gradient gradient = DEFAULT_GRADIENT;
-        private double opacity = DEFAULT_OPACITY;
+        private float opacity = DEFAULT_OPACITY;
         private int width = 0;
         private int height = 0;
 
@@ -230,7 +245,7 @@ public class HeatMap {
             return this;
         }
 
-        public Builder opacity(double val) {
+        public Builder opacity(float val) {
             opacity = val;
             if (opacity < 0 || opacity > 1) {
                 throw new IllegalArgumentException("Opacity must be in range [0, 1]");

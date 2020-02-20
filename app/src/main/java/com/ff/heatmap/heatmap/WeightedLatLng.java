@@ -22,7 +22,7 @@ public class WeightedLatLng {
     /**
      * intensity must be over zero
      */
-    public final double intensity;
+    public final float intensity;
 
 //
 //    public WeightedLatLng(LatLng latlng, double intensity) {
@@ -41,7 +41,7 @@ public class WeightedLatLng {
     //I don't have points of geo-coordinates,so I use points of screen coordinates instead
     //If you want generate a heat map use LatLng data,you should use the constructor above this
     //And you should transform LatLng into screen coordinates when generate the heat map
-    public WeightedLatLng(int x, int y, double intensity) {
+    public WeightedLatLng(int x, int y, float intensity) {
         this.x = x;
         this.y = y;
         if (intensity < 0) {
